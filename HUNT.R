@@ -1,134 +1,19 @@
 rm(list=ls())
 
-library(chron)
-library(colorspace)
-library(mime)
-library(munsell)
-library(labeling)
-library(rlang)
-library(stringi)
-library(evaluate)
-library(highr)
-library(markdown)
-library(yaml)
-library(backports)
-library(jsonlite)
-library(digest)
-library(plyr)
-library(reshape2)
-library(scales)
-library(tibble)
-library(lazyeval)
-library(RColorBrewer)
-library(stringr)
-library(knitr)
-library(magrittr)
-library(checkmate)
-library(htmlwidgets)
-library(viridisLite)
-library(Rcpp)
-library(Formula)
-library(ggplot2)
-library(latticeExtra)
-library(acepack)
-library(gtable)
-library(data.table)
-library(htmlTable)
-library(viridis)
-library(htmltools)
-library(base64enc)
-library(minqa)
-library(RcppEigen)
-library(lme4)
-library(SparseM)
-library(MatrixModels)
-library(pbkrtest)
-library(quantreg)
-library(car)
-library(Hmisc)
-library(survival)
-library(foreign)
-library(bitops)
-library(caTools)
-library(gplots)
-library(ROCR)
-library(mice)
-library(writexl)
-library(officer)
-library(uuid)
-library(HardyWeinberg)
-library(compareGroups)
-library(nlme)
-library(vcd)
-library(boot)
-library(tibble)
-library(haven)
-library(icenReg)
-library(MASS)
-library(sandwich)   
-library(lmtest)
-library(gam)
-library(smoothHR)
-library(metafor)
-library(DBI)
-library(mitools)
-library(RcppArmadillo)
-library(miceadds)
-library(dplyr)
-library(estimatr)
-library(lubridate)
-library(snakecase)
-library(janitor)
-library(fmsb)
-library(remotes)
-library(sessioninfo)
-library(usethis)
-library(iterpc)
-library(CompQuadForm)
-library(arrangements)
-library(rjson)
 
-library(devtools)
-library(googleAuthR)
-library(MendelianRandomization)
-library(mr.raps)
-library(meta)
-
-#devtools::install("N:/durable/projects/ALHE_MR_CHD/R_packages/MR-PRESSO-master/MR-PRESSO-master/")
-#devtools::install("N:/durable/projects/ALHE_MR_CHD/R_packages/MRInstruments-master/MRInstruments-master/")
-#devtools::install("N:/durable/projects/ALHE_MR_CHD/R_packages/MRMix-master/MRMix-master/")
-#utils::install.packages("N:/durable/projects/ALHE_MR_CHD/R_packages/RadialMR-master/RadialMR-master/", repos=NULL, type="source")
-#utils::install.packages("N:/durable/projects/ALHE_MR_CHD/R_packages/ieugwasr-0.1.5.tar.gz", repos=NULL, type="source")
-#utils::install.packages("N:/durable/projects/ALHE_MR_CHD/R_packages/TwoSampleMR-0.5.6.tar.gz", repos=NULL, type="source")
-
-library(MRPRESSO)
-library(MRInstruments)
-library(MRMix)
-library(RadialMR)
-library(ieugwasr)
-library(TwoSampleMR)
-
-
-RutinesLocals<- "N:/durable/projects/ALHE_MR_CHD/R_packages/Routines"
-source(file.path(RutinesLocals,"carrega.llibreria.r"))
-source(file.path(RutinesLocals,"merge2.r"))
-source(file.path(RutinesLocals,"fix2.r"))
-source(file.path(RutinesLocals,"table2.r"))
-source(file.path(RutinesLocals,"subset2.r"))
-source(file.path(RutinesLocals,"format2.r"))
-source(file.path(RutinesLocals,"order2.r"))
-source(file.path(RutinesLocals,"intervals.r"))
-
-
-### GUAPAS ###
-##############
+### SELF-MADE FUNCTIONS TO OBTAIN CLEAN ESTIMATES ###
+#####################################################
 
 guapa<-function(x)
 {
-  redondeo<-ifelse(abs(x)<0.0001,signif(x,1),
-                   ifelse(abs(x)<0.001,signif(x,1),
-                          ifelse(abs(x)<0.1,round(x,3),
-                                 ifelse(abs(x)<1,round(x,2),signif(x,3)))))
+  redondeo<-ifelse(abs(x)<0.00001,signif(x,1),
+                   ifelse(abs(x)<0.0001,signif(x,1),
+                          ifelse(abs(x)<0.001,signif(x,1),
+                                 ifelse(abs(x)<0.1,sprintf("%.3f",round(x,3)),
+                                        ifelse(abs(x)<1,sprintf("%.2f",round(x,2)),
+                                               ifelse(abs(x)<10,sprintf("%.2f",round(x,2)),
+                                                      ifelse(abs(x)<100,sprintf("%.1f",round(x,1)),
+                                                             ifelse(abs(x)>=100,round(x,0),round(x,0)))))))))
   return(redondeo)
 }
 
@@ -222,12 +107,6 @@ names(dat)<-tolower(names(dat))
 dat$pid<-as.character(dat$pid110334)
 dat$sex<-with(dat,ifelse(sex=="M",0,
                          ifelse(sex=="F",1,NA)))
-dat$fert<-with(dat,ifelse(fert=="fertile",0,
-                          ifelse(fert=="subfertile",1,
-                                 ifelse(fert=="infertile",2,NA))))
-dat$subf<-with(dat,ifelse(fert==0,0,
-                          ifelse(fert==1,1,
-                                 ifelse(fert==2,1,NA))))
 dat$smok<-with(dat,ifelse(smok=="non-smoker",0,
                           ifelse(smok=="smoker",1,NA)))
 dat$educ<-with(dat,ifelse(educ=="secondary school",1,
@@ -252,16 +131,13 @@ dat$children<-with(dat,ifelse(children=="-Inf",0,children))
 
 dat$partner<-with(dat,ifelse(is.na(partner),NA,
                              ifelse(!is.na(partner),as.character(substr(partner,4,16)),NA)))
-dat$chd_prior<-with(dat,ifelse(chd_prior=="FALSE",0,
-                               ifelse(chd_prior=="TRUE",1,NA))) 
 dat$chd_lifetime<-with(dat,ifelse(chd_lifetime=="FALSE",0,
                                   ifelse(chd_lifetime=="TRUE",1,NA)))  
 dat<-rename.vars(dat,from=c("survey_age","smok","educ"),to=c("age_survey","smoking","education"))
 
 dat<-dat[,c("pid","partner","couple","survey","age_survey","birthyear",
-            "sex","bmi","eduyears","smoking","children","subf","fert",
-            "chd_lifetime","chd_prior","chd_noangina_lifetime","chd_noangina_prior","chd_noangina_icd10_lifetime",
-            "chd_noangina_icd10_prior","infarct_lifetime","infarct_prior","angina_lifetime","angina_prior")]
+            "sex","bmi","eduyears","smoking","children",
+            "chd_lifetime")]
 
 
 grs<-as.data.frame(read.delim("./Data/grs_chd_220803.txt",header=TRUE,sep=" "))
@@ -281,10 +157,6 @@ save(dat,file="N:/durable/projects/ALHE_MR_CHD/all.RData")
 # Unique variables in MoBa #
 
 dat2<-subset2(dat,"dat$sex==1")
-
-mom_subf<-dat2[,c("pid","subf")]
-mom_subf<-mom_subf[order(mom_subf$pid,-abs(mom_subf$subf)),]
-mom_subf<-mom_subf[!duplicated(mom_subf$pid),]
 
 mom_bmimax<-dat2[,c("pid","bmi")]
 mom_bmimax<-mom_bmimax[order(mom_bmimax$pid,-abs(mom_bmimax$bmi)),]
@@ -308,23 +180,17 @@ mom_childrenmax<-rename.vars(mom_childrenmax,from=c("children"),to=c("childrenma
 
 
 dat2<-dat2[,c("pid","sex","partner","couple","survey","children","age_survey","birthyear",
-              "chd_lifetime","chd_prior","chd_noangina_lifetime","chd_noangina_prior","chd_noangina_icd10_lifetime",
-              "chd_noangina_icd10_prior","infarct_lifetime","infarct_prior","angina_lifetime","angina_prior",
+              "chd_lifetime",
               "cad_grs","batch","pc1","pc2","pc3","pc4","pc5","pc6","pc7","pc8","pc9","pc10",
               "pc11","pc12","pc13","pc14","pc15","pc16","pc17","pc18","pc19","pc20")]
 
-hunt_mom<-merge2(mom_subf,mom_bmimax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
-hunt_mom<-merge2(hunt_mom,mom_eduyearsmax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
+hunt_mom<-merge2(mom_bmimax,mom_eduyearsmax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
 hunt_mom<-merge2(hunt_mom,mom_smokingmax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
 hunt_mom<-merge2(hunt_mom,mom_childrenmax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
 hunt_mom<-merge2(hunt_mom,dat2,by.id=c("pid"),all.x=TRUE,sort=FALSE)
 
 
 dat2<-subset2(dat,"dat$sex==0")
-
-dad_subf<-dat2[,c("pid","subf")]
-dad_subf<-dad_subf[order(dad_subf$pid,-abs(dad_subf$subf)),]
-dad_subf<-dad_subf[!duplicated(dad_subf$pid),]
 
 dad_bmimax<-dat2[,c("pid","bmi")]
 dad_bmimax<-dad_bmimax[order(dad_bmimax$pid,-abs(dad_bmimax$bmi)),]
@@ -348,13 +214,11 @@ dad_childrenmax<-rename.vars(dad_childrenmax,from=c("children"),to=c("childrenma
 
 
 dat2<-dat2[,c("pid","sex","partner","couple","survey","children","age_survey","birthyear",
-              "chd_lifetime","chd_prior","chd_noangina_lifetime","chd_noangina_prior","chd_noangina_icd10_lifetime",
-              "chd_noangina_icd10_prior","infarct_lifetime","infarct_prior","angina_lifetime","angina_prior",
+              "chd_lifetime",
               "cad_grs","batch","pc1","pc2","pc3","pc4","pc5","pc6","pc7","pc8","pc9","pc10",
               "pc11","pc12","pc13","pc14","pc15","pc16","pc17","pc18","pc19","pc20")]
 
-hunt_dad<-merge2(dad_subf,dad_bmimax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
-hunt_dad<-merge2(hunt_dad,dad_eduyearsmax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
+hunt_dad<-merge2(dad_bmimax,dad_eduyearsmax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
 hunt_dad<-merge2(hunt_dad,dad_smokingmax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
 hunt_dad<-merge2(hunt_dad,dad_childrenmax,by.id=c("pid"),all.x=TRUE,sort=FALSE)
 hunt_dad<-merge2(hunt_dad,dat2,by.id=c("pid"),all.x=TRUE,sort=FALSE)
@@ -417,7 +281,7 @@ mbrn$miscarriage24_mbrn<-with(mbrn,ifelse(spabort_23>0 | spabort_23_5>0,1,0))
 mbrn$miscarriage_mbrn<-with(mbrn,ifelse(miscarriage12_mbrn>0 | miscarriage24_mbrn>0,1,0))
 
 
-### SMALL AND LARGE FOR GESTATIONAL AGE (SGA, LGA) ### 
+### SMALL FOR GESTATIONAL AGE (SGA, LGA) ### 
 
 # Erase children with sex not specified (0), uncertain (3) or missing (9) #
 
@@ -435,7 +299,7 @@ mbrn_boys<-mbrn_boys[,c("pid110334_barn","svlen2","vekt")]
 mbrn_girls<-subset2(mbrn,"mbrn$kjonn==2 & !is.na(mbrn$pid110334_barn2)")
 mbrn_girls<-mbrn_girls[,c("pid110334_barn","svlen2","vekt")]
 
-# SGA and LGA in boys #
+# SGA in boys #
 
 mbrn_boys$s24<-with(mbrn_boys,ifelse(mbrn_boys$svlen2==24,mbrn_boys$vekt,NA))
 mbrn_boys$s25<-with(mbrn_boys,ifelse(mbrn_boys$svlen2==25,mbrn_boys$vekt,NA))
@@ -509,30 +373,10 @@ mbrn_boys$sga_boys<-with(mbrn_boys,ifelse(sga24==1,1,
                                                                                                                                                           ifelse(sga41==1,1,
                                                                                                                                                                  ifelse(sga42==1,1,
                                                                                                                                                                         ifelse(sga43==1,1,0)))))))))))))))))))))
-mbrn_boys$lga_boys<-with(mbrn_boys,ifelse(sga24==10,1,
-                                          ifelse(sga25==10,1,
-                                                 ifelse(sga26==10,1,
-                                                        ifelse(sga27==10,1,
-                                                               ifelse(sga28==10,1,
-                                                                      ifelse(sga29==10,1,
-                                                                             ifelse(sga30==10,1,
-                                                                                    ifelse(sga31==10,1,
-                                                                                           ifelse(sga32==10,1,
-                                                                                                  ifelse(sga33==10,1,
-                                                                                                         ifelse(sga34==10,1,
-                                                                                                                ifelse(sga35==10,1,
-                                                                                                                       ifelse(sga36==10,1,
-                                                                                                                              ifelse(sga37==10,1,
-                                                                                                                                     ifelse(sga38==10,1,
-                                                                                                                                            ifelse(sga39==10,1,
-                                                                                                                                                   ifelse(sga40==10,1,
-                                                                                                                                                          ifelse(sga41==10,1,
-                                                                                                                                                                 ifelse(sga42==10,1,
-                                                                                                                                                                        ifelse(sga43==10,1,0)))))))))))))))))))))
-mbrn_boys<-mbrn_boys[,c("pid110334_barn","sga_boys","lga_boys")]
+mbrn_boys<-mbrn_boys[,c("pid110334_barn","sga_boys")]
 
 
-# SGA and LGA in girls #
+# SGA in girls #
 
 mbrn_girls$s24<-with(mbrn_girls,ifelse(mbrn_girls$svlen2==24,mbrn_girls$vekt,NA))
 mbrn_girls$s25<-with(mbrn_girls,ifelse(mbrn_girls$svlen2==25,mbrn_girls$vekt,NA))
@@ -607,33 +451,12 @@ mbrn_girls$sga_girls<-with(mbrn_girls,ifelse(sga24==1,1,
                                                                                                                                                                     ifelse(sga42==1,1,
                                                                                                                                                                            ifelse(sga43==1,1,0)))))))))))))))))))))
 
-mbrn_girls$lga_girls<-with(mbrn_girls,ifelse(sga24==10,1,
-                                             ifelse(sga25==10,1,
-                                                    ifelse(sga26==10,1,
-                                                           ifelse(sga27==10,1,
-                                                                  ifelse(sga28==10,1,
-                                                                         ifelse(sga29==10,1,
-                                                                                ifelse(sga30==10,1,
-                                                                                       ifelse(sga31==10,1,
-                                                                                              ifelse(sga32==10,1,
-                                                                                                     ifelse(sga33==10,1,
-                                                                                                            ifelse(sga34==10,1,
-                                                                                                                   ifelse(sga35==10,1,
-                                                                                                                          ifelse(sga36==10,1,
-                                                                                                                                 ifelse(sga37==10,1,
-                                                                                                                                        ifelse(sga38==10,1,
-                                                                                                                                               ifelse(sga39==10,1,
-                                                                                                                                                      ifelse(sga40==10,1,
-                                                                                                                                                             ifelse(sga41==10,1,
-                                                                                                                                                                    ifelse(sga42==10,1,
-                                                                                                                                                                           ifelse(sga43==10,1,0)))))))))))))))))))))
-
-mbrn_girls<-mbrn_girls[,c("pid110334_barn","sga_girls","lga_girls")]
+mbrn_girls<-mbrn_girls[,c("pid110334_barn","sga_girls")]
 
 mbrn<-merge2(mbrn,mbrn_boys,by.id=c("pid110334_barn"),all.x=TRUE,sort=FALSE)
 mbrn<-merge2(mbrn,mbrn_girls,by.id=c("pid110334_barn"),all.x=TRUE,sort=FALSE)
 
-vars<-c("sga_boys","sga_girls","lga_boys","lga_girls")
+vars<-c("sga_boys","sga_girls")
 for(i in 1:length(vars))
 {
   mbrn[,vars[i]]<-with(mbrn,ifelse(is.na(mbrn[,vars[i]]),0,mbrn[,vars[i]]))
@@ -641,8 +464,6 @@ for(i in 1:length(vars))
 
 mbrn$sga<-with(mbrn,ifelse(sga_boys==1,1,
                            ifelse(sga_girls==1,1,0)))
-mbrn$lga<-with(mbrn,ifelse(lga_boys==1,1,
-                           ifelse(lga_girls==1,1,0)))
 
 
 ### Create variables that inform of any event in any pregnancy (included or not in MoBa) ###
@@ -695,18 +516,6 @@ mom_sga<-mbrn_mom[,c("pid110334_mor","sga")]
 mom_sga<-mom_sga[order(mom_sga$pid110334_mor,-abs(mom_sga$sga)),]
 mom_sga<-mom_sga[!duplicated(mom_sga$pid110334_mor),]
 
-mom_lga<-mbrn_mom[,c("pid110334_mor","lga")]
-mom_lga<-mom_lga[order(mom_lga$pid110334_mor,-abs(mom_lga$lga)),]
-mom_lga<-mom_lga[!duplicated(mom_lga$pid110334_mor),]
-
-mom_miscarriage12_mbrn<-mbrn_mom[,c("pid110334_mor","miscarriage12_mbrn")]
-mom_miscarriage12_mbrn<-mom_miscarriage12_mbrn[order(mom_miscarriage12_mbrn$pid110334_mor,-abs(mom_miscarriage12_mbrn$miscarriage12_mbrn)),]
-mom_miscarriage12_mbrn<-mom_miscarriage12_mbrn[!duplicated(mom_miscarriage12_mbrn$pid110334_mor),]
-
-mom_miscarriage24_mbrn<-mbrn_mom[,c("pid110334_mor","miscarriage24_mbrn")]
-mom_miscarriage24_mbrn<-mom_miscarriage24_mbrn[order(mom_miscarriage24_mbrn$pid110334_mor,-abs(mom_miscarriage24_mbrn$miscarriage24_mbrn)),]
-mom_miscarriage24_mbrn<-mom_miscarriage24_mbrn[!duplicated(mom_miscarriage24_mbrn$pid110334_mor),]
-
 mom_miscarriage_mbrn<-mbrn_mom[,c("pid110334_mor","miscarriage_mbrn")]
 mom_miscarriage_mbrn<-mom_miscarriage_mbrn[order(mom_miscarriage_mbrn$pid110334_mor,-abs(mom_miscarriage_mbrn$miscarriage_mbrn)),]
 mom_miscarriage_mbrn<-mom_miscarriage_mbrn[!duplicated(mom_miscarriage_mbrn$pid110334_mor),]
@@ -729,16 +538,13 @@ mbrn_mom<-merge2(mbrn_mom,mom_preterm,by.id=c("pid110334_mor"),all.x=TRUE,sort=F
 mbrn_mom<-merge2(mbrn_mom,mom_preterm_sp,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
 mbrn_mom<-merge2(mbrn_mom,mom_gdm,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
 mbrn_mom<-merge2(mbrn_mom,mom_sga,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
-mbrn_mom<-merge2(mbrn_mom,mom_lga,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
-mbrn_mom<-merge2(mbrn_mom,mom_miscarriage12_mbrn,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
-mbrn_mom<-merge2(mbrn_mom,mom_miscarriage24_mbrn,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
 mbrn_mom<-merge2(mbrn_mom,mom_miscarriage_mbrn,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
 mbrn_mom<-merge2(mbrn_mom,mom_stillbirth,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
 mbrn_mom<-merge2(mbrn_mom,mom_agemax,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
 mbrn_mom<-merge2(mbrn_mom,mom_yearpregmax,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
 mbrn_mom<-merge2(mbrn_mom,mom_paritymax,by.id=c("pid110334_mor"),all.x=TRUE,sort=FALSE)
-names(mbrn_mom)<-c("pid","eclampsia","hta_preg","hta_chronic","preterm","preterm_sp","gdm","sga","lga",
-                   "miscarriage12_mbrn","miscarriage24_mbrn","miscarriage_mbrn","stillbirth",
+names(mbrn_mom)<-c("pid","eclampsia","hta_preg","hta_chronic","preterm","preterm_sp","gdm","sga",
+                   "miscarriage_mbrn","stillbirth",
                    "agemax","yearpregmax","paritymax")
 
 mbrn_mom$pid<-with(mbrn_mom,ifelse(pid=="",NA,pid))
@@ -791,18 +597,6 @@ dad_sga<-mbrn_dad[,c("pid110334_far","sga")]
 dad_sga<-dad_sga[order(dad_sga$pid110334_far,-abs(dad_sga$sga)),]
 dad_sga<-dad_sga[!duplicated(dad_sga$pid110334_far),]
 
-dad_lga<-mbrn_dad[,c("pid110334_far","lga")]
-dad_lga<-dad_lga[order(dad_lga$pid110334_far,-abs(dad_lga$lga)),]
-dad_lga<-dad_lga[!duplicated(dad_lga$pid110334_far),]
-
-dad_miscarriage12_mbrn<-mbrn_dad[,c("pid110334_far","miscarriage12_mbrn")]
-dad_miscarriage12_mbrn<-dad_miscarriage12_mbrn[order(dad_miscarriage12_mbrn$pid110334_far,-abs(dad_miscarriage12_mbrn$miscarriage12_mbrn)),]
-dad_miscarriage12_mbrn<-dad_miscarriage12_mbrn[!duplicated(dad_miscarriage12_mbrn$pid110334_far),]
-
-dad_miscarriage24_mbrn<-mbrn_dad[,c("pid110334_far","miscarriage24_mbrn")]
-dad_miscarriage24_mbrn<-dad_miscarriage24_mbrn[order(dad_miscarriage24_mbrn$pid110334_far,-abs(dad_miscarriage24_mbrn$miscarriage24_mbrn)),]
-dad_miscarriage24_mbrn<-dad_miscarriage24_mbrn[!duplicated(dad_miscarriage24_mbrn$pid110334_far),]
-
 dad_miscarriage_mbrn<-mbrn_dad[,c("pid110334_far","miscarriage_mbrn")]
 dad_miscarriage_mbrn<-dad_miscarriage_mbrn[order(dad_miscarriage_mbrn$pid110334_far,-abs(dad_miscarriage_mbrn$miscarriage_mbrn)),]
 dad_miscarriage_mbrn<-dad_miscarriage_mbrn[!duplicated(dad_miscarriage_mbrn$pid110334_far),]
@@ -825,16 +619,13 @@ mbrn_dad<-merge2(mbrn_dad,dad_preterm,by.id=c("pid110334_far"),all.x=TRUE,sort=F
 mbrn_dad<-merge2(mbrn_dad,dad_preterm_sp,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
 mbrn_dad<-merge2(mbrn_dad,dad_gdm,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
 mbrn_dad<-merge2(mbrn_dad,dad_sga,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
-mbrn_dad<-merge2(mbrn_dad,dad_lga,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
-mbrn_dad<-merge2(mbrn_dad,dad_miscarriage12_mbrn,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
-mbrn_dad<-merge2(mbrn_dad,dad_miscarriage24_mbrn,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
 mbrn_dad<-merge2(mbrn_dad,dad_miscarriage_mbrn,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
 mbrn_dad<-merge2(mbrn_dad,dad_stillbirth,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
 mbrn_dad<-merge2(mbrn_dad,dad_agemax,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
 mbrn_dad<-merge2(mbrn_dad,dad_yearpregmax,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
 mbrn_dad<-merge2(mbrn_dad,dad_paritymax,by.id=c("pid110334_far"),all.x=TRUE,sort=FALSE)
-names(mbrn_dad)<-c("pid","eclampsia","hta_preg","hta_chronic","preterm","preterm_sp","gdm","sga","lga",
-                   "miscarriage12_mbrn","miscarriage24_mbrn","miscarriage_mbrn","stillbirth",
+names(mbrn_dad)<-c("pid","eclampsia","hta_preg","hta_chronic","preterm","preterm_sp","gdm","sga",
+                   "miscarriage_mbrn","stillbirth",
                    "agemax","yearpregmax","paritymax")
 
 mbrn_dad$pid<-with(mbrn_dad,ifelse(pid=="",NA,pid))
@@ -857,3 +648,389 @@ dat<-rbind(mom,dad)
 save(dat,file="N:/durable/projects/ALHE_MR_CHD/all.RData")
 
 
+### POPULATION DESCRIPTION ###
+##############################
+
+load("N:/durable/projects/ALHE_MR_CHD/mom.RData")
+datx<-subset2(mom,"!is.na(mom$cad_grs) & mom$birthyear>1952")
+datx<-datx[!duplicated(datx$pid),]
+datx$miscarriage_mbrn<-with(datx,ifelse(yearpregmax<1998,NA,miscarriage_mbrn))
+datx$gdm<-with(datx,ifelse(yearpregmax<2006,NA,gdm))
+datx$childrenmax<-with(datx,ifelse(childrenmax>=4,4,childrenmax))
+
+xxx<-datx[,c("birthyear","agemax","eduyearsmax","bmimax","smokingmax","childrenmax","paritymax",
+             "hta_preg","eclampsia","gdm","preterm","preterm_sp","sga","miscarriage_mbrn","stillbirth")]
+xxx$sel<-1
+
+all<-NULL
+all<-createTable(compareGroups(sel~.,
+                               xxx, method=c("birthyear"=2,"agemax"=2,"bmimax"=2,"smokingmax"=3,"childrenmax"=3,"paritymax"=3,
+                                             "subf"=3,"miscarriage_mbrn"=3,"stillbirth"=3,"eclampsia"=3,
+                                             "hta_preg"=3,"preterm"=3,"preterm_sp"=3,"sga"=3)),
+                 show.n=TRUE, show.p.overall=FALSE, show.p.trend=FALSE, hide.no=0)
+
+tab1<-NULL
+tab1<-as.data.frame(cbind(all$descr[,1]))
+colnames(tab1)<-c("Mothers-All")
+write.table(tab1,file="./descriptive/descriptive_mothers.csv",sep=";",col.names=NA)
+
+
+load("N:/durable/projects/ALHE_MR_CHD/dad.RData")
+datx<-subset2(dad,"!is.na(dad$cad_grs) & dad$birthyear>1952")
+datx<-datx[!duplicated(datx$pid),]
+datx$miscarriage_mbrn<-with(datx,ifelse(yearpregmax<1998,NA,miscarriage_mbrn))
+datx$gdm<-with(datx,ifelse(yearpregmax<2006,NA,gdm))
+datx$childrenmax<-with(datx,ifelse(childrenmax>=4,4,childrenmax))
+
+xxx<-datx[,c("birthyear","agemax","eduyearsmax","bmimax","smokingmax","childrenmax","paritymax",
+             "hta_preg","eclampsia","gdm","preterm","preterm_sp","sga","miscarriage_mbrn","stillbirth")]
+xxx$sel<-1
+
+all<-NULL
+all<-createTable(compareGroups(sel~.,
+                               xxx, method=c("birthyear"=2,"agemax"=2,"bmimax"=2,"smokingmax"=3,"childrenmax"=3,"paritymax"=3,
+                                             "subf"=3,"miscarriage_mbrn"=3,"stillbirth"=3,"eclampsia"=3,
+                                             "hta_preg"=3,"preterm"=3,"preterm_sp"=3,"sga"=3)),
+                 show.n=TRUE, show.p.overall=FALSE, show.p.trend=FALSE, hide.no=0)
+
+tab1<-NULL
+tab1<-as.data.frame(cbind(all$descr[,1]))
+colnames(tab1)<-c("Fathers-All")
+write.table(tab1,file="./descriptive/descriptive_fathers.csv",sep=";",col.names=NA)
+
+
+### SELECTION BIAS - INCLUDED vs NON-INCLUDED ###
+
+load("N:/durable/projects/ALHE_MR_CHD/all.RData")
+datx<-subset2(dat,"dat$birthyear>1952")
+datx$exclusion<-with(datx,ifelse(!is.na(datx$cad_grs),0,1))
+datx<-datx[!duplicated(datx$pid),]
+datx$miscarriage_mbrn<-with(datx,ifelse(yearpregmax<1998,NA,miscarriage_mbrn))
+datx$gdm<-with(datx,ifelse(yearpregmax<2006,NA,gdm))
+datx$childrenmax<-with(datx,ifelse(childrenmax>=4,4,childrenmax))
+
+xxx<-datx[,c("exclusion","sex","birthyear","agemax","eduyearsmax","bmimax","smokingmax","childrenmax","paritymax",
+             "hta_preg","eclampsia","gdm","preterm","preterm_sp","sga","miscarriage_mbrn","stillbirth")]
+all<-NULL
+all<-createTable(compareGroups(exclusion~.,
+                               xxx, method=c("sex"=3,"birthyear"=2,"agemax"=2,"bmimax"=2,"smokingmax"=3,"childrenmax"=3,"paritymax"=3,
+                                             "miscarriage_mbrn"=3,"stillbirth"=3,"eclampsia"=3,
+                                             "hta_preg"=3,"preterm"=3,"preterm_sp"=3,"sga"=3,"gdm"=3)),
+                 show.n=TRUE, show.p.overall=TRUE, show.p.trend=FALSE, hide.no=0)
+
+tab1<-NULL
+tab1<-as.data.frame(all$descr)
+colnames(tab1)<-c("Included","Non-included","P-value","N")
+write.table(tab1,file="./descriptive/selectionbias.csv",sep=";",col.names=NA)
+
+xxx2<-subset2(xxx,"xxx$sex==1")
+all<-NULL
+all<-createTable(compareGroups(exclusion~.-sex,
+                               xxx2, method=c("birthyear"=2,"agemax"=2,"bmimax"=2,"smokingmax"=3,"childrenmax"=3,"paritymax"=3,
+                                              "miscarriage_mbrn"=3,"stillbirth"=3,"eclampsia"=3,
+                                              "hta_preg"=3,"preterm"=3,"preterm_sp"=3,"sga"=3,"gdm"=3)),
+                 show.n=TRUE, show.p.overall=TRUE, show.p.trend=FALSE, hide.no=0)
+tab1<-NULL
+tab1<-as.data.frame(all$descr)
+colnames(tab1)<-c("Included","Non-included","P-value","N")
+write.table(tab1,file="./descriptive/selectionbias_mothers.csv",sep=";",col.names=NA)
+
+xxx2<-subset2(xxx,"xxx$sex==0")
+all<-NULL
+all<-createTable(compareGroups(exclusion~.-sex,
+                               xxx2, method=c("birthyear"=2,"agemax"=2,"bmimax"=2,"smokingmax"=3,"childrenmax"=3,"paritymax"=3,
+                                              "miscarriage_mbrn"=3,"stillbirth"=3,"eclampsia"=3,
+                                              "hta_preg"=3,"preterm"=3,"preterm_sp"=3,"sga"=3,"gdm"=3)),
+                 show.n=TRUE, show.p.overall=TRUE, show.p.trend=FALSE, hide.no=0)
+tab1<-NULL
+tab1<-as.data.frame(all$descr)
+colnames(tab1)<-c("Included","Non-included","P-value","N")
+write.table(tab1,file="./descriptive/selectionbias_fathers.csv",sep=";",col.names=NA)
+
+
+### ROBUSTNESS OF CAD GRS ###
+#############################
+
+load("N:/durable/projects/ALHE_MR_CHD/all.RData")
+library(pROC)
+
+# Number of SNPs used for each GRS (CAD: n=146)
+
+vars00<-c("cad_grs","cad_grs","cad_grs")
+vars01<-c("cad_grs_z","cad_grs_z","cad_grs_z")
+vars02<-c("chd_lifetime","chd_lifetime","chd_lifetime")
+vars03<-c(0,1,2)
+vars04<-c("women_","men_","all_")
+vars05<-c("CHD (odds ratio)","CHD (odds ratio)","CHD (odds ratio)"
+vars06<-c("CHD-GRS, women","CHD-GRS, men","CHD-GRS, all")
+
+tab<-NULL
+
+for(i in 1:length(vars01))
+  
+{
+  datx<-subset2(dat,"dat$sex!=vars03[i] & !is.na(dat[,vars00[i]]) & !is.na(dat[,vars02[i]])")
+  datx[,vars01[i]]<-as.numeric(with(datx,scale(datx[,vars00[i]])))
+  mod01<-glm(formula=as.factor(datx[,vars02[i]])~datx[,vars01[i]],
+             data=datx, family="binomial")
+  estimate<-as.numeric(summary(mod01)$coefficients[2,1])
+  se<-as.numeric(summary(mod01)$coefficients[2,2])
+  z<-qnorm(1-0.05/2)
+  hr<-guapa(exp(estimate))
+  ic95a<-round(exp(estimate-(z*se)),3)
+  ic95b<-round(exp(estimate+(z*se)),3)
+  coef<-ic_guapa(hr,ic95a,ic95b)
+  llrtest<-round(as.numeric(anova(mod01,test=c("F"))[2,5]),0) # log-likelihood ratio test (~F in binomial GLM)
+  pseudor2<-paste("'",guapa(NagelkerkeR2(mod01)$R2*100),sep="") # pseudoR2 by the Nagelkerke method
+  n_snps<-c("146")
+  datx$prob<-predict.glm(mod01,type=c("response"))
+  roc_auc<-guapa(roc(as.factor(datx[,vars02[i]])~prob,data=datx)$auc)
+  mean_grs<-paste(guapa(mean(datx[,vars00[i]],na.rm=TRUE))," (",guapa(sd(datx[,vars00[i]],na.rm=TRUE)),")",sep="")
+  size<-dim(datx)[1]
+  cases<-paste(table(datx[,vars02[i]])[2]," (",guapa(table(datx[,vars02[i]])[2]/dim(datx)[1]*100)," %)",sep="")
+  
+  aaa<-datx[,vars00[i]]
+  mod_lin<-gam(formula=as.factor(datx[,vars02[i]])~aaa,
+               data=datx, family="binomial")
+  mod_nlin<-gam(formula=as.factor(datx[,vars02[i]])~bs(aaa,df=4),
+                data=datx, family="binomial")
+  p_lrtest<-pval_guapa(lrtest(mod_lin,mod_nlin)[2,5])
+  
+  aaa<-datx[,vars00[i]]
+  minim<-mean(aaa,na.rm=TRUE)
+  mod01<-gam(formula=as.factor(datx[,vars02[i]])~bs(aaa,df=4),
+             data=datx, family="binomial")
+  ptemp<-termplot(mod01,term=1,se=TRUE,plot=FALSE)
+  temp<-ptemp$aaa
+  value<-closest(temp$x,minim)
+  #min_val<-temp$x[which(temp$y==min(temp$y,na.rm=TRUE))]
+  center<-with(temp, y[x==value])
+  z<-qnorm(1-0.05/2)
+  ytemp<-temp$y+outer(temp$se,c(0,-z,z),'*')
+  min_val<-guapa(temp$x[which(temp$y==min(temp$y,na.rm=TRUE))])
+  ci<-exp(ytemp-center)
+  name<-paste("./descriptive/robustness_",vars04[i],vars02[i],".jpg",sep="")
+  labely<-vars05[i]
+  
+  plot.data<-as.data.frame(cbind(temp$x,ci))
+  colnames(plot.data)<-c("xval","yest","lci","uci")
+  figure<-ggplot() +
+    geom_histogram(data=datx, aes(x=datx[,vars00[i]], y=(..density../max(..density..,na.rm=TRUE))*3.75), 
+                   bins=20, color="grey80", fill="grey90") +
+    #scale_x_continuous(limits = c(min(dat2[,vars01[i]],na.rm=TRUE),max(dat2[,vars01[i]],na.rm=TRUE))) +
+    scale_y_continuous(limits = c(0,4), sec.axis = sec_axis(~., name = "Relative density")) +
+    geom_hline(aes(yintercept=1), data=plot.data, colour="black", linetype=2) + 
+    geom_line(aes(x=xval, y=yest), data=plot.data, color="black") + 
+    geom_line(aes(x=xval, y=lci), data=plot.data, color="grey35") + 
+    geom_line(aes(x=xval ,y=uci), data=plot.data, color="grey35") + 
+    theme_bw() +
+    labs(x=vars06[i],y=labely) +
+    theme(axis.title.x = element_text(vjust=0.5, size=20), 
+          axis.title.y = element_text(vjust=0.5, size=20),
+          axis.text.x = element_text(size=16, colour = 'black'),
+          axis.text.y = element_text(size=16, colour = 'black'),
+          axis.ticks.x = element_line(colour = 'black'),
+          axis.ticks.y = element_line(colour = 'black'),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.y.right = element_blank(),
+          axis.ticks.y.right = element_blank())  
+  #    geom_point(aes(x=infl01, y=with(plot.data, yest[xval==infl01])), data=plot.data, colour="black", size=2.5) +
+  #    geom_point(aes(x=infl02, y=with(plot.data, yest[xval==infl02])), data=plot.data, colour="black", size=2.5)
+  
+  jpeg(filename=name,width = 8000, height = 8000, res=1200)
+  par(las=1,cex=1.2,mar=c(6,6,2,0),bty="n",lheight=0.9)
+  figure
+  dev.off()
+  
+  tab<-rbind(tab,cbind(size,cases,n_snps,mean_grs,coef,llrtest,roc_auc,pseudor2,p_lrtest))
+}
+
+rownames(tab)<-paste(vars04,vars02,sep="")
+write.table(tab,file="./descriptive/robustness_grs.csv",sep=";",col.names=NA)
+
+
+### LOGISTIC REGRESSION: LINEAR ASSOCIATIONS ###
+################################################
+
+load("N:/durable/projects/ALHE_MR_CHD/all.RData")
+dat$adj<-0
+dat$excl_misc<-with(dat,ifelse(yearpregmax<1998,1,0))
+dat$excl_gdm<-with(dat,ifelse(yearpregmax<2006,1,0))
+
+vars01<-c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
+vars02<-c("miscarriage_mbrn","miscarriage_mbrn","stillbirth","stillbirth",
+          "eclampsia","eclampsia","hta_preg","hta_preg",
+          "preterm","preterm","preterm_sp","preterm_sp","sga","sga","gdm","gdm")
+vars03<-c("excl_misc","excl_misc","adj","adj",
+          "hta_chronic","hta_chronic","hta_chronic","hta_chronic",
+          "adj","adj","adj","adj","adj","adj","excl_gdm","excl_gdm")
+vars08<-c("pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1")
+vars09<-c("pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2")
+vars10<-c("pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3")
+vars11<-c("pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4")
+vars12<-c("pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5")
+vars13<-c("pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6")
+vars14<-c("pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7")
+vars15<-c("pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8")
+vars16<-c("pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9")
+vars17<-c("pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10")
+vars28<-c("CAD-GRS - Miscarriage-MBRN, mothers","CAD-GRS - Miscarriage-MBRN, fathers",
+          "CAD-GRS - Stillbirth, mothers","CAD-GRS - Stillbirth, fathers",
+          "CAD-GRS - Pre-/Eclampsia, mothers","CAD-GRS - Pre-/Eclampsia, fathers",
+          "CAD-GRS - HT in pregnancy, mothers","CAD-GRS - HT in pregnancy, fathers",
+          "CAD-GRS - Preterm, mothers","CAD-GRS - Preterm, fathers",
+          "CAD-GRS - Spontaneous preterm, mothers","CAD-GRS - Spontaneous preterm, fathers",
+          "CAD-GRS - SGA, mothers","CAD-GRS - SGA, fathers",
+          "CAD-GRS - Gestat. diabetes, mothers","CAD-GRS - Gestat. diabetes, fathers")
+
+tab<-NULL
+z<-qnorm(1-0.05/2)
+
+for(i in 1:length(vars01))
+  
+{
+  datx<-subset2(dat,"dat$sex==vars01[i] & dat[,vars03[i]]==0 & !is.na(dat$cad_grs) & !is.na(dat[,vars02[i]]) & dat$birthyear>1952")
+  datx$cad_grs_z<-as.numeric(with(datx,scale(datx$cad_grs)))
+  sample<-dim(datx)[1]
+  
+  mod01<-glm(formula=as.factor(datx[,vars02[i]])~cad_grs_z,
+             data=datx, family="binomial")
+  estimate01<-as.numeric(summary(mod01)$coefficients[2,1])
+  se01<-as.numeric(summary(mod01)$coefficients[2,2])
+  coef01<-risk_se_ic_guapa(estimate01,se01)
+  pval01<-pval_guapa(as.numeric(summary(mod01)$coefficients[2,4]))
+  
+  mod02<-glm(formula=as.factor(datx[,vars02[i]])~cad_grs_z
+             +datx[,vars08[i]]+datx[,vars09[i]]+datx[,vars10[i]]+datx[,vars11[i]]+datx[,vars12[i]]
+             +datx[,vars13[i]]+datx[,vars14[i]]+datx[,vars15[i]]+datx[,vars16[i]]+datx[,vars17[i]]+as.factor(batch),
+             data=datx, family="binomial")
+  estimate02<-as.numeric(summary(mod02)$coefficients[2,1])
+  se02<-as.numeric(summary(mod02)$coefficients[2,2])
+  coef02<-risk_se_ic_guapa(estimate02,se02)
+  pval02<-pval_guapa(as.numeric(summary(mod02)$coefficients[2,4]))
+  or02<-round(exp(estimate02),5)
+  ic95lo02<-round(exp(estimate02-(z*se02)),5)
+  ic95hi02<-round(exp(estimate02+(z*se02)),5)
+  
+  aaa<-datx$cad_grs_z
+  mod_base<-glm(formula=as.factor(datx[,vars02[i]])~datx[,vars08[i]]
+                +datx[,vars09[i]]+datx[,vars10[i]]+datx[,vars11[i]]+datx[,vars12[i]]
+                +datx[,vars13[i]]+datx[,vars14[i]]+datx[,vars15[i]]+datx[,vars16[i]]+datx[,vars17[i]]+as.factor(batch),
+                data=datx, family="binomial")
+  mod_lin<-glm(formula=as.factor(datx[,vars02[i]])~aaa
+               +datx[,vars08[i]]+datx[,vars09[i]]+datx[,vars10[i]]+datx[,vars11[i]]+datx[,vars12[i]]
+               +datx[,vars13[i]]+datx[,vars14[i]]+datx[,vars15[i]]+datx[,vars16[i]]+datx[,vars17[i]]+as.factor(batch),
+               data=datx, family="binomial")
+  mod_nlin<-glm(formula=as.factor(datx[,vars02[i]])~bs(aaa,df=4)
+                +datx[,vars08[i]]+datx[,vars09[i]]+datx[,vars10[i]]+datx[,vars11[i]]+datx[,vars12[i]]
+                +datx[,vars13[i]]+datx[,vars14[i]]+datx[,vars15[i]]+datx[,vars16[i]]+datx[,vars17[i]]+as.factor(batch),
+                data=datx, family="binomial")
+  p_lrtest02<-pval_guapa(lrtest(mod_lin,mod_nlin)[2,5])
+  
+  tab<-rbind(tab,cbind(coef01,pval01,coef02,pval02,p_lrtest02,
+                       estimate02,se02,or02,ic95lo02,ic95hi02,sample))
+}
+
+colnames(tab)<-c("coef (raw)","pval (raw)","coef (adj.)","pval (adj.)","p_lrtest",
+                 "beta","se","or","ic95lo","ic95hi","sample")
+rownames(tab)<-vars28
+write.table(tab,file="./results/linear.csv",sep=";",col.names=NA)
+
+
+### ANALYSES ADJUSTED FOR GRS OF THE PARTNER ###
+################################################
+
+load("N:/durable/projects/ALHE_MR_CHD/mom.RData")
+load("N:/durable/projects/ALHE_MR_CHD/dad.RData")
+mom2<-subset2(mom,"!is.na(mom$partner)")
+dad2<-subset2(dad,"!is.na(dad$partner)")
+dad2<-dad2[,c("pid","cad_grs")]
+dad2<-rename.vars(dad2,from=c("pid","cad_grs"),to=c("partner","cad_grs_partner"))
+mom_merge<-merge2(mom2,dad2,by.id=c("partner"),all.x=TRUE,sort=FALSE)
+
+load("N:/durable/projects/ALHE_MR_CHD/mom.RData")
+load("N:/durable/projects/ALHE_MR_CHD/dad.RData")
+dad2<-subset2(dad,"!is.na(dad$partner)")
+mom2<-subset2(mom,"!is.na(mom$partner)")
+mom2<-mom2[,c("pid","cad_grs")]
+mom2<-rename.vars(mom2,from=c("pid","cad_grs"),to=c("partner","cad_grs_partner"))
+dad_merge<-merge2(dad2,mom2,by.id=c("partner"),all.x=TRUE,sort=FALSE)
+
+dat<-rbind(mom_merge,dad_merge)
+dat$adj<-0
+dat$excl_misc<-with(dat,ifelse(yearpregmax<1998,1,0))
+dat$excl_gdm<-with(dat,ifelse(yearpregmax<2006,1,0))
+
+vars01<-c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
+vars02<-c("miscarriage_mbrn","miscarriage_mbrn","stillbirth","stillbirth",
+          "eclampsia","eclampsia","hta_preg","hta_preg",
+          "preterm","preterm","preterm_sp","preterm_sp","sga","sga","gdm","gdm")
+vars03<-c("excl_misc","excl_misc","adj","adj",
+          "hta_chronic","hta_chronic","hta_chronic","hta_chronic",
+          "adj","adj","adj","adj","adj","adj","excl_gdm","excl_gdm")
+vars08<-c("pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1","pc1")
+vars09<-c("pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2","pc2")
+vars10<-c("pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3","pc3")
+vars11<-c("pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4","pc4")
+vars12<-c("pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5","pc5")
+vars13<-c("pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6","pc6")
+vars14<-c("pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7","pc7")
+vars15<-c("pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8","pc8")
+vars16<-c("pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9","pc9")
+vars17<-c("pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10","pc10")
+vars28<-c("CAD-GRS - Miscarriage-MBRN, mothers","CAD-GRS - Miscarriage-MBRN, fathers",
+          "CAD-GRS - Stillbirth, mothers","CAD-GRS - Stillbirth, fathers",
+          "CAD-GRS - Pre-/Eclampsia, mothers","CAD-GRS - Pre-/Eclampsia, fathers",
+          "CAD-GRS - HT in pregnancy, mothers","CAD-GRS - HT in pregnancy, fathers",
+          "CAD-GRS - Preterm, mothers","CAD-GRS - Preterm, fathers",
+          "CAD-GRS - Spontaneous preterm, mothers","CAD-GRS - Spontaneous preterm, fathers",
+          "CAD-GRS - SGA, mothers","CAD-GRS - SGA, fathers",
+          "CAD-GRS - Gestat. diabetes, mothers","CAD-GRS - Gestat. diabetes, fathers")
+
+tab<-NULL
+z<-qnorm(1-0.05/2)
+
+for(i in 1:length(vars01))
+  
+{
+  datx<-subset2(dat,"dat$sex==vars01[i] & dat[,vars03[i]]==0 & !is.na(dat$cad_grs) & !is.na(dat[,vars02[i]]) & dat$birthyear>1952")
+  datx$cad_grs_z<-as.numeric(with(datx,scale(datx$cad_grs)))
+  datx$cad_grs_partner_z<-as.numeric(with(datx,scale(datx$cad_grs_partner)))
+  sample<-dim(datx)[1]
+  
+  mod02<-glm(formula=as.factor(datx[,vars02[i]])~cad_grs_z
+             +datx[,vars08[i]]+datx[,vars09[i]]+datx[,vars10[i]]+datx[,vars11[i]]+datx[,vars12[i]]
+             +datx[,vars13[i]]+datx[,vars14[i]]+datx[,vars15[i]]+datx[,vars16[i]]+datx[,vars17[i]]+as.factor(batch)+cad_grs_partner_z,
+             data=datx, family="binomial")
+  estimate02<-as.numeric(summary(mod02)$coefficients[2,1])
+  se02<-as.numeric(summary(mod02)$coefficients[2,2])
+  coef02<-risk_se_ic_guapa(estimate02,se02)
+  pval02<-pval_guapa(as.numeric(summary(mod02)$coefficients[2,4]))
+  or02<-round(exp(estimate02),5)
+  ic95lo02<-round(exp(estimate02-(z*se02)),5)
+  ic95hi02<-round(exp(estimate02+(z*se02)),5)
+  
+  aaa<-datx$cad_grs_z
+  mod_base<-glm(formula=as.factor(datx[,vars02[i]])~datx[,vars08[i]]
+                +datx[,vars09[i]]+datx[,vars10[i]]+datx[,vars11[i]]+datx[,vars12[i]]
+                +datx[,vars13[i]]+datx[,vars14[i]]+datx[,vars15[i]]+datx[,vars16[i]]+datx[,vars17[i]]+as.factor(batch)+cad_grs_partner_z,
+                data=datx, family="binomial")
+  mod_lin<-glm(formula=as.factor(datx[,vars02[i]])~aaa
+               +datx[,vars08[i]]+datx[,vars09[i]]+datx[,vars10[i]]+datx[,vars11[i]]+datx[,vars12[i]]
+               +datx[,vars13[i]]+datx[,vars14[i]]+datx[,vars15[i]]+datx[,vars16[i]]+datx[,vars17[i]]+as.factor(batch)+cad_grs_partner_z,
+               data=datx, family="binomial")
+  mod_nlin<-glm(formula=as.factor(datx[,vars02[i]])~bs(aaa,df=4)
+                +datx[,vars08[i]]+datx[,vars09[i]]+datx[,vars10[i]]+datx[,vars11[i]]+datx[,vars12[i]]
+                +datx[,vars13[i]]+datx[,vars14[i]]+datx[,vars15[i]]+datx[,vars16[i]]+datx[,vars17[i]]+as.factor(batch)+cad_grs_partner_z,
+                data=datx, family="binomial")
+  p_lrtest02<-pval_guapa(lrtest(mod_lin,mod_nlin)[2,5])
+  
+  tab<-rbind(tab,cbind(coef02,pval02,p_lrtest02,
+                       estimate02,se02,or02,ic95lo02,ic95hi02,sample))
+}
+
+colnames(tab)<-c("coef (adj.)","pval (adj.)","p_lrtest",
+                 "beta","se","or","ic95lo","ic95hi","sample")
+rownames(tab)<-vars28
+write.table(tab,file="./results/linear_adj_grs_partner.csv",sep=";",col.names=NA)
