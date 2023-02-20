@@ -20,7 +20,8 @@
 
 ## Syntax available
 Available files: 
-- mr_cvrf.R: database for descriptive, population description, sensitivity analyses (Steiger filtering), two-sample MR
+- MoBa.R: syntax in MoBa for database generation, population description, and analyses
+- HUNT.R: syntax in HUNT for database generation, population description, and analyses
 
 
 ## Citation
